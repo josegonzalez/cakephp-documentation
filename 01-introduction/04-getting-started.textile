@@ -1,0 +1,74 @@
+h1. Getting Started
+
+h2. Requirements
+
+* HTTP Server (Apache + mod_rewrite recommended)
+* PHP 4.3.2 or greater
+* GIT (or archived source from the download list)
+* SQL Database (MySQL, PostgreSQL, SQL Server, OracleDB, SQLite)
+
+h2. Installing CakePHP
+
+h3. SSH
+
+If installing using GIT, you will need an account Github. It is necessary to generate an ssh key to clone repositories from Github (the below is output from an OS X machine):
+
+<pre><code>$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/cakephp/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /Users/cakephp/.ssh/id_rsa.
+Your public key has been saved in /Users/cakephp/.ssh/id_rsa.pub.
+</code></pre>
+
+h3. Git clone
+
+Once your key has been generated, create an account on Github and add your public ssh key (id_rsa.pub) as a key on your account. Then you may issue the following commands:
+
+<pre><code>$ cd ~/Sites
+$ git clone git://github.com/cakephp/cakephp
+Cloning into cakephp...
+remote: Counting objects: 92739, done.
+remote: Compressing objects: 100% (17649/17649), done.
+remote: Total 92739 (delta 74578), reused 92033 (delta 73969)
+Receiving objects: 100% (92739/92739), 13.24 MiB | 1.67 MiB/s, done.
+Resolving deltas: 100% (74578/74578), done.
+</code></pre>
+
+The initial clone may take a few minutes, but will typically be quicker on every successive pull.
+
+h3. Cake Command
+
+It is also possible to add the @cake@ command to the command line by editing your system @$PATH@. On a Unix machine, this will be either in ~/.bash_profile or ~/.bashrc:
+
+@PATH=$PATH:/Users/cakephp/Sites/cakephp/cake/console@
+
+Windows users can add the appropriate @cake.bat@ - located in the same path as above - to their System Path. Please consult a guide to do so for your specific version of Windows OS.
+
+h3. Success
+
+If everything has been correctly installed, typing @cake@ in the command line will result in the following:
+
+<pre><code>Welcome to CakePHP v1.3.3 Console
+---------------------------------------------------------------
+Current Paths:
+ -app: Sites
+ -working: /Users/cakephp/Sites
+ -root: /Users/cakephp
+ -core: /Users/cakephp/Sites/cakephp
+
+Changing Paths:
+your working path should be the same as your application path
+to change your path use the '-app' param.
+Example: -app relative/path/to/myapp or -app /absolute/path/to/myapp
+
+Available Shells:
+ acl [CORE]                         bake [CORE]                        i18n [CORE]                     testsuite [CORE]
+ api [CORE]                         console [CodeCheck]                schema [CORE]
+
+To run a command, type 'cake shell_name [args]'
+To get help on a specific command, type 'cake shell_name help'
+</code></pre>
+
+Browsing to @http://localhost/cakephp@ will also result in a styled CakePHP landing page.
