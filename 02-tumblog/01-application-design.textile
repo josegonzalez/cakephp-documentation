@@ -1,0 +1,55 @@
+h1. Application Design
+
+Most, if not all, applications can boil down to *CRUD*-type actions. *CRUD* stands for _Create, Read, Update, Delete_, and web applications tend to do at least one of these types of requests. A Blog is a good example of this, so we will start by building the basics of a Tumblogging application.
+
+For the purposes of this application, we will concentrate on the following types of tumbles. You may wish to implement other popular media types, or replace those which are outlined below.
+
+* Images
+* Links
+* Text
+* Youtube Videos
+
+At it's base, our application will use *MySQL* as a backend and only allow linking to external images. We will also have at least one required field per tumble type, as well as other optional metadata. Images, for example, might have path or filesize attached, while Links would have a title and perhaps a description field. Below is the mapping we will use for our extra data:
+
+* Images
+ * *required* link
+ * description
+ * click_through
+* Links
+* *required* link
+ * title
+ * description
+* Text
+ * *required* description
+ * title
+* Youtube Videos
+ * *required* url
+ * title
+ * description
+
+From the above, we see that there is a pattern to the data we are holding. There is at least 1 required field with 1 or more optional fields. We can therefore define a Global @Post@ type:
+
+* Post
+ * type_id
+ * *required* required
+ * description
+ * extra_field
+
+Our extra field can contain arbitrary data, such as the title or a click_through link. We can use type_id to track the type of the post.
+
+<pre><code>CREATE TABLE `posts` (
+  `id` char(36) DEFAULT NULL,
+  `type_id` int(11) unsigned DEFAULT NULL,
+  `required` text NOT NULL,
+  `description` text,
+  `extra_field` varchar(255) DEFAULT NULL,
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+</code></pre>
+
+Above is the SQL statement that can be used to produce our @posts@ table. CakePHP stresses Convention over Configuration, and to that end, prefers that all database tables be the lowercase, plural version of the Model name. In this case, @posts@ table for the @Post@ Model.
+
+CakePHP also supports UUIDs for @primaryKey@s, as well as auto-incrementing INT fields. For UUID support, set the @primaryKey@ to either @CHAR(36)@ or @BINARY(36)@, and CakePHP will generate an ISO-compliant UUID key. Using UUID is a good practice for times in the future when it may be necessary to merge tables or databases from wildly different datasources that would otherwise have overlapping @primaryKeys@.
+
+CakePHP does not currently have support for Composite Primary Keys, as this does not allow for truly unique keys in a database table and is not supported across all CakePHP-supported databases. A work-around is to assign an extra, auto-incrementing primaryKey and set a custom unique constraint to handle your composite fields.
