@@ -37,6 +37,8 @@ From the above, we see that there is a pattern to the data we are holding. There
 
 Our extra field can contain arbitrary data, such as the title or a click_through link. We can use type_id to track the type of the post.
 
+h2. Notes on the ORM and SQL
+
 <pre><code>CREATE TABLE `posts` (
   `id` char(36) DEFAULT NULL,
   `type_id` int(11) unsigned DEFAULT NULL,
@@ -53,3 +55,5 @@ Above is the SQL statement that can be used to produce our @posts@ table. CakePH
 CakePHP also supports UUIDs for @primaryKey@s, as well as auto-incrementing INT fields. For UUID support, set the @primaryKey@ to either @CHAR(36)@ or @BINARY(36)@, and CakePHP will generate an ISO-compliant UUID key. Using UUID is a good practice for times in the future when it may be necessary to merge tables or databases from wildly different datasources that would otherwise have overlapping @primaryKeys@.
 
 CakePHP does not currently have support for Composite Primary Keys, as this does not allow for truly unique keys in a database table and is not supported across all CakePHP-supported databases. A work-around is to assign an extra, auto-incrementing primaryKey and set a custom unique constraint to handle your composite fields.
+
+CakePHP does have supported for a few automagic fields. The @created@, @modified@, and @updated@ fields automatically get the current datetime if contained within a table, and the @modified@ and @updated@ fields are updated when the record is directly updated. Note that many deployed CakePHP application use the @modified@ fieldName, while legacy applications tend to use @updated@. Keep this in mind when evaluating available CakePHP code.
