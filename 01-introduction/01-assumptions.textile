@@ -1,10 +1,6 @@
-h1. Getting Started
+h1. Assumptions
 
-There are a couple assumptions that have been taken during the writing of these tutorials.
-
-h2. Assumptions
-
-h3. CakePHP
+h2. CakePHP
 
 You are reading this because
 
@@ -16,7 +12,7 @@ You are reading this because
 
 If you fall into the first 3 categories, we're going to have a great time. If you are in the fourth, do not expect much out of these guides for a long time. If you are in the last, good luck, you're going to need it.
 
-h3. GIT
+h2. GIT
 
 You should be familiar with @GIT@ version control, if not, there are excellent guides on the following websites:
 
@@ -46,11 +42,11 @@ git clone http://github.com/cakephp/cakephp
 
 You may need to change the paths accordingly.
 
-h3.  Command Line
+h2. Command Line
 
 Knowledge of the command-line and how to use it will never be necessary with these guides. Except for the chapter outlining Cakeshells, there will always be a path for those using the command-line and a separate path for those choosing not to or who are unable to. That said, if you are able to use the command line or would like to learn something new, please consider adding the @cake@ command to your $PATH.
 
-h3.  PHP
+h2. PHP
 
 Deep knowledge of PHP will not be on your part, but this series will strive not to explain what is better explained elsewhere. If you find yourself not knowing what a PHP function does, please consult the PHP Documentation. For example, you may access "http://php.net/str_replace":http://php.net/str_replace for documentation concerning the @str_replace@ function.
 
@@ -58,10 +54,10 @@ For help with outside libraries, if used herein, supplementary material and link
 
 For a general purpose PHP tutorial, please read "Practical PHP Programming":http://www.tuxradar.com/practicalphp, available online at TuxRadar for free.
 
-h3.  Programming
+h2. Programming
 
 You should know what a function is, a variable, and some PHP syntax (see above). This guide has been written in mind for first-year Computer Science students at a University, so it is possible to learn this as you go.
 
-h3.  HTML/CSS/JS
+h2. HTML/CSS/JS
 
 We will be concentrating on CakePHP and PHP-related functionality for the majority of the time. Even so, we will touch upon ideas and projects that will involve a small amount of Javascript knowledge, and HTML/CSS is handy if only for making your end applications look good.
