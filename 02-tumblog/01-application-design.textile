@@ -31,7 +31,7 @@ From the above, we see that there is a pattern to the data we are holding. There
 
 * Post
 ** type_id
-** required* required
+** *required* required
 ** description
 ** extra_field
 
