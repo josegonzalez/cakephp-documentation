@@ -12,28 +12,28 @@ For the purposes of this application, we will concentrate on the following types
 At it's base, our application will use *MySQL* as a backend and only allow linking to external images. We will also have at least one required field per tumble type, as well as other optional metadata. Images, for example, might have path or filesize attached, while Links would have a title and perhaps a description field. Below is the mapping we will use for our extra data:
 
 * Images
- * *required* link
- * description
- * click_through
+** *required* link
+** description
+** click_through
 * Links
-* *required* link
- * title
- * description
+** *required* link
+** title
+** description
 * Text
- * *required* description
- * title
+** *required* description
+** title
 * Youtube Videos
- * *required* url
- * title
- * description
+** *required* url
+** title
+** description
 
 From the above, we see that there is a pattern to the data we are holding. There is at least 1 required field with 1 or more optional fields. We can therefore define a Global @Post@ type:
 
 * Post
- * type_id
- * *required* required
- * description
- * extra_field
+** type_id
+** required* required
+** description
+** extra_field
 
 Our extra field can contain arbitrary data, such as the title or a click_through link. We can use type_id to track the type of the post.
 
