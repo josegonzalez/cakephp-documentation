@@ -1,0 +1,62 @@
+h1. About Models
+
+CakePHP makes it easy to access data within a relational database. It has a custom ORM, the Cake Model, that provides access to all the standard SQL query methods, as well as data validation and automagic data sanitization. The Cake Model is also very extensible, and allows developers to create alternative datasources that can be used within the context of the CakePHP ORM.
+
+h2. The CakePHP Model Class
+
+CakePHP's Model class can be seen as the gatekeeper between you and your data. When developing your application, you typically have various Models which access some database or datasource. Each of these Models extends the AppModel - or your PluginAppModel which then extends the AppModel - in order to provide a single point at which you may extend your application in a DRY method.
+
+The AppModel can contain things such as behaviors to be attached to all Models, useful functions, or validation rules. Sometimes you may wish to quickly prototype some common functionality to all models, and the AppModel is a good place to put it before moving it into a behavior.
+
+While the AppModel is your end-all be-all, it extends the core Model class. This class can be found in your CakePHP core directory, under libs/model/model.php. The Model class provides access to datasources and databases in a consistent way, through the use of common methods, delegation, and a bit of automagic. It also provides access to callback methods, and integrates data validation as well as model relationships.
+
+h3. Datasources and DatabaseSources
+
+The difference between the two is very subtle. A datasource provides direct access to some source of data, typically an external API. A DatabaseSource is still a datasource, except it has support for common functionality in Relational Databases. One typically will write Datasources as opposed to DatabaseSources, but don't be afraid to build a DatabaseSource should the occasion require it.
+
+h3. Behaviors
+
+Behaviors rule.
+
+Actually, Behaviors are meant as a holding ground for common model functionality and code portability. The CakePHP core provides a few behaviors, such as the TreeBehavior and TranslateBehavior, and developers are also able to distribute their own Behaviors. Good candidates for Behaviors include the following:
+
+# File Upload Logic
+# Logic to keep records in a defined Ordering
+# Data Caching
+# Record Versioning
+
+Behaviors can also contain custom validation rules and other methods that one might want to be accessible via multiple models. While it may be easier to place Behavior logic within the AppModel, keeping code DRY, testable, and portable definitely makes Behaviors a powerful development practice.
+
+h3. Validation Rules
+
+CakePHP has, by default, a set of validation rules. Below are a couple:
+
+# alphaNumeric - Verifies that the input is either letters or numbers
+# between - Verifies that the input is a number within a range, inclusive
+# blank - Verifies that a field is blank or blank-like (whitespace)
+# boolean - Verifies that a field is boolean-like. [true, false, 0, 1, '0', '1']
+# cc - Verifies that the input is a valid Credit Card number
+# comparison - Compares the input to some value
+# date - Verifies that the input is a valid date
+# decimal - Verifies that the input has N decimal points
+# email - Verifies the truthiness of an email address
+
+CakePHP provides around 26 different validation rules. Please see the documentation on their usage.
+
+It's also possible to define a custom validation rule. Below is a rule that can be placed in your Model or AppModel. It will ensure that a field has been checked and return false if it has not been checked. It can be used in instances where a user must accept "Terms of Service", or similar cases:
+
+<pre><code>public function isChecked(&$field) {
+    return in_array(array_pop(array_values($field)), array(true, 1, '1'));
+}</code></pre>
+
+The above rule can also be placed in a Behavior, for portability across applications:
+
+<pre><code><?php
+class ExtendedValidation extends ModelBehavior {
+    public function isChecked(&$model, &$field) {
+        return in_array(array_pop(array_values($field)), array(true, 1, '1'));
+    }
+}
+?></code></pre>
+
+Validation rules are automatically called when creating or updating records - this can be disabled - and can also be called manually on a dataset.
