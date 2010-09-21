@@ -1,0 +1,182 @@
+h1. The Post Model
+
+Now that you've been bored to tears about the Model class - if you haven't, we'll revisit the internals at a later date - we will finally build a slightly advanced Post Model.
+
+If you are familiar with CakePHP's conventions, you will notice that a @types@ table was never specified. This is because we are going to take advantage of CakePHP's conventions in this regard. Please note that this will be a thorough abuse of the functionality that CakePHP provides, and will take a little digesting. I suggest a Venti Mocha Frap.
+
+<pre><code><?php
+class Post extends AppModel {
+    public $name = 'Post';
+    public $actsAs = array('Containable');
+    public $postTypes;
+
+    public function __construct($id = false, $table = null, $ds = null) {
+        parent::__construct($id, $table, $ds);
+        $this->postTypes = array(
+            0 => __('Images', true),
+            1 => __('Links', true),
+            2 => __('Text', true),
+            3 => __('Youtube', true).
+        );
+
+        $this->validate = array(
+            'type_id' => array(
+                'rule' => array('inList', array_keys($this->postTypes)),
+                'required' => true,
+                'message' => __('Select a valid post type', true),
+            ),
+            'required' => array(
+                'notEmpty' => array(
+                    'rule' => 'notEmpty',
+                    'required' => true,
+                    'message' => __('This field cannot be left blank', true),
+                ),
+                'typeValidate' => array(
+                    'rule' => 'typeValidate',
+                    'required' => true,
+                    'message' => $this->typeValidateMessage(),
+                ),
+            ),
+        );
+    }
+
+/**
+ * Validates the field depending on the posted type_id
+ *
+ * @param string $field 
+ * @return boolean
+ * @author Jose Diaz-Gonzalez
+ */
+    public function typeValidate(&$field, $type_field = 'type_id') {
+        $type = $this->data[$this->alias][$type_field];
+
+        $validation = Validation::getInstance();
+        switch ($type) {
+            case 0 : // Image
+                $result = $validation->url($field, true);
+                if (!$result) return false;
+                return $this->validateEnding($field, array('bmp', 'gif', 'jpeg', 'jpg', 'png'));
+            case 1 : // Link
+                return $validation->url($field, true);
+            case 2 : // Text
+                return $validation->notEmpty($field);
+            case 3 : // Youtube
+                $result = $validation->url($field, true);
+                if (!$result) return false;
+                return $this->validateYoutubeUrl($field);
+        }
+        return false;
+    }
+
+/**
+ * Validates that the string ends in one of several com
+ *
+ * @param string $field 
+ * @return boolean
+ * @author Jose Diaz-Gonzalez
+ */
+    public function validateEnding(&$field, $endings = array()) {
+        if (empty($endings)) return false;
+
+        $value = array_pop(array_values($field));
+        foreach ($endings as $ending) {
+            if (substr($value, -(strlen($ending) + 1)) !== ".{$ending}") return false;
+        }
+        return true;
+    }
+
+/**
+ * Validates that a string is a valid Youtube URL
+ *
+ * @param string $field 
+ * @return boolean
+ * @author Jose Diaz-Gonzalez
+ */
+    public function validateYoutubeUrl(&$field) {
+        $values = array_values($field);
+        $video = $this->_getYoutubeVideo(array_pop($value));
+        if (!$video) return false;
+
+        App::import('Core', 'HttpSocket');
+        $socket = new HttpSocket();
+        $request = "http://youtube.com/watch?v={$video}";
+        $response = $socket->get("http://www.youtube.com/oembed?url={$request}");
+
+        if (!$response) return false;
+        $response = json_decode($response);
+        if (!$response || !is_object($response) || !isset($response->title)) return false;
+        return true;
+    }
+
+/**
+ * Strips a link in search of a youtube video identifier
+ *
+ * @param string $subject 
+ * @return mixed String containing vid if found, false otherwise
+ * @author Jose Diaz-Gonzalez
+ */
+    protected function _getYoutubeVideo($subject) {
+        $patterns = array(
+            '@(http://)?((www|it|de|ca|au)\.)?youtube.com/(watch(\?|\#\!)v=|v/)(?P<match>[^\&\s]{11})@i',
+            '@(http://)?(www\.)?youtu.be/(?P<match>[^\&\s]{11})@i'
+        );
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $subject, $matches) == 1) {
+                $match = $matches['match'];
+                return $match;
+            }
+        }
+        return false;
+    }
+
+/**
+ * Returns the correct validation message depending upon post type
+ *
+ * @return string
+ * @author Jose Diaz-Gonzalez
+ */
+    public function typeValidateMessage() {
+        $type = $this->data[$this->alias][$type_field];
+
+        switch ($type) {
+            case 0 : // Image
+                return __('Invalid image link', true);
+            case 1 : // Link
+                return __('Invalid link', true);
+            case 2 : // Text
+                return __('Invalid post', true);
+            case 3 : // Youtube
+                return __('Invalid youtube url', true);
+        }
+        return __('Invalid post', true);
+    }
+
+}
+
+?></pre></code>
+
+I told you this would be complicated. We'll walk through it all piece-wise.
+
+h2. PHP5?
+
+While CakePHP does support PHP4, this does not mean that PHP5 visibility keywords cannot be used. Your application's codebase can be fully PHP5 compliant, while the Core remains backwards compatible. Please not that using PHP5 features means that your application will NOT run on PHP4, regardless of CakePHP's backwards compatibility features.
+
+h2. Model Constructors
+
+Because of the base @Object@ class that CakePHP creates, it is possible to use @__construct()@, PHP5-style constructors. Please note that you need to properly initialize the Model by passing in the regular constructor parameters. Above is the example on how to do such a thing.
+
+Overriding the constructor means one can specify variables at compile-time. Deferring logic until there is more information is always good. PHP also does not allow using methods outside of function scope within a class declaration, which brings us to our next topic
+
+h2. Internationalization
+
+Since we specify the validation rules within the constructor, it is possible to use the @__()@ method in CakePHP to automatically wrap translatable text so that the messages are picked up by the internationalization shell (more on that later). Internationalization is never a bad thing, and it's so simple that there isn't much harm in baking it right into your application.
+
+h2. Custom Validation Rules
+
+As noted in a previous section, custom validation rules can be written to do almost any kind of data validation. In this example, Incoming data is validated based upon the data within another field. Validation is delegated to existing rules or custom rules which are specify as functions. You will notice that the @validateYoutubeUrl()@ function actually uses the HttpSocket class - included with CakePHP and used as a portable version of CURL - to check the URL.
+
+h2. Regular Expressions
+
+Don't be afraid to learn regular expressions - or outsource them. I have to thank a "Cory Burgett":http://github.com/baguette for writing that nifty bit of regex against a ridiculous requirement.
+
+Coincidentally, custom validation rules can be made up of just regular expressions.
