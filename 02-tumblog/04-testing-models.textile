@@ -20,7 +20,7 @@ There can be others as well. Regardless, it is always good practice to have unit
 
 h2. CakePHP "Quirks"
 
-CakePHP uses SimpleTest. Yes, it is broken on PHP5, and no, your complaining will not change it overnight to PHPUnit. For the record, PHPUnit integration is scheduled for CakePHP 2.0.
+CakePHP uses SimpleTest. Your complaining will not change it overnight to PHPUnit. For the record, PHPUnit integration is scheduled for CakePHP 2.0.
 
 Installation of SimpleTest can be done by downloading the latest stable version - 1.0.1 as of this writing - and extracting the contents to @app/vendors/simpletest@. It is also possible to install it into your global @vendors@ directory, or even a Plugin's @vendors@ directory.
 
