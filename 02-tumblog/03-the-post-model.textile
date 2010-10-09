@@ -16,7 +16,7 @@ class Post extends AppModel {
             0 => __('Images', true),
             1 => __('Links', true),
             2 => __('Text', true),
-            3 => __('Youtube', true).
+            3 => __('Youtube', true),
         );
 
         $this->validate = array(
@@ -136,7 +136,7 @@ class Post extends AppModel {
  * @author Jose Diaz-Gonzalez
  */
     public function typeValidateMessage() {
-        $type = $this->data[$this->alias][$type_field];
+        $type = (!empty($this->data)) ? $this->data[$this->alias]['type_field'] : '2';
 
         switch ($type) {
             case 0 : // Image
