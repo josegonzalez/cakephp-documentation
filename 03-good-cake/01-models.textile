@@ -168,7 +168,7 @@ Custom find types need two things, to be enabled in the model:
 
 <pre><code><?php
 class Post extends AppModel {
-    public $_findMethods = array('latest' => true);
+    var $_findMethods = array('latest' => true);
 }
 ?></code></pre>
 
@@ -176,9 +176,9 @@ And a custom find method
 
 <pre><code><?php
 class Post extends AppModel {
-    public $_findMethods = array('latest' => true);
+    var $_findMethods = array('latest' => true);
 
-    public function _findComing($state, $query, $results = array()) {
+    function _findLatest($state, $query, $results = array()) {
         if ($state === 'before') {
             if (empty('limit')) {
                 $query['limit'] = 3;
