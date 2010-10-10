@@ -155,7 +155,7 @@ The following are core find types:
 
 # @first@
 # @all@
-# @all@
+# @count@
 # @list@
 # @threaded@
 # @neighbors@
