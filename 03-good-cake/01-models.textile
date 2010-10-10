@@ -143,3 +143,89 @@ class AppModel extends LazyModel {
 ?></code></pre>
 
 And off to the races your application goes. Please be aware that setting @$recursive@ to higher than @-1@ is not advised with this method. There are other caveats, please consult the "lazy model readme":http://github.com/Phally/lazy_model for more details
+
+h2. Custom Find Types
+
+A Model Find Type is a shortcut to find options. For example, the following two finds are equivalent
+
+@$this->User->find('first');@
+@$this->User->find('all', array('limit' => 1));@
+
+The following are core find types:
+
+# @first@
+# @all@
+# @all@
+# @list@
+# @threaded@
+# @neighbors@
+
+Become familiar with them, they are incredibly useful.
+
+But what about other types? Maybe we want a @latest@ find type, that grabs the latest 3 approved posts. Lets create just that.
+
+Custom find types need two things, to be enabled in the model:
+
+<pre><code><?php
+class Post extends AppModel {
+    public $_findMethods = array('latest' => true);
+}
+?></code></pre>
+
+And a custom find method
+
+<pre><code><?php
+class Post extends AppModel {
+    public $_findMethods = array('latest' => true);
+
+    public function _findComing($state, $query, $results = array()) {
+        if ($state === 'before') {
+            if (empty('limit')) {
+                $query['limit'] = 3;
+            }
+            $query['conditions']['approved'] = 1;
+
+            if (!empty($query['operation'])) {
+                return $this->_findCount($state, $query, $results);
+            }
+            return $query;
+        }
+        if (!empty($query['operation'])) {
+            return $this->_findCount($state, $query, $results);
+        }
+        return $results;
+    }
+}
+?></code></pre>
+
+In a custom find method, we need to handle two states, the @before@ and @after state@. The @before@ state sets up a query so that it can be further processed via Model Behaviors and the CakePHP model class. The @after@ state exists so that we can further process the data for, eg. Sanitization.
+
+You'll notice the @before@ state is handled just fine (@if ($state == 'before')@), and since we return before we leave the statement, we never need to worry about accidentally returning an @after@ state. There is also the following:
+
+<pre><code>if (!empty($query['operation'])) {
+    return $this->_findCount($state, $query, $results);
+}
+</code></pre>
+
+That is there to support pagination.
+
+<pre><code><?php
+class PostsController extends AppController {
+    function latest() {
+        $this->paginate = array('latest');
+        $this->set('posts', $this->paginate());
+    }
+
+    function latestSidebar($limit = 3) {
+        if (!$this->RequestHandler->isAjax()) {
+            return false;
+        }
+        $this->set('posts', $this->Post->find('latest', array(
+            'limit' => $limit
+        )));
+    }
+}
+?>
+</code></pre>
+
+The awesome thing is that you can use all the normal Model stuff, like Behaviors - @Containable@ and @Linkable@ are a few - pagination, model callbacks etc. This is a great way to write good cake that is based on the core practices, testable, and DRY.
