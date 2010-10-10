@@ -1,0 +1,145 @@
+h1. Models
+
+The following example will be used in illustrating Model tricks:
+
+<pre><code>Post belongsTo User
+User hasMany Post
+Post hasAndBelongsToMany Tag
+Tag hasAndBelongsToMany Post
+Post belongsTo Category
+Category belongsTo Post
+</code></pre>
+
+h2. Recursive Queries
+
+CakePHP's @Model@ class has a variable called @$recursive@. Here is the little docblock on it:
+
+<pre><code>
+/**
+ * Number of associations to recurse through during find calls. Fetches only
+ * the first level by default.
+ *
+ * @var integer
+ * @access public
+ * @link http://book.cakephp.org/view/1057/Model-Attributes#recursive-1063
+ */
+	var $recursive = 1;
+</code></pre>
+
+So by default, the following query:
+
+@$user = $this->User->find('first')@
+
+Will retrieve the following data:
+
+<pre><code>$user = array(
+    'User' => array(
+        'id'        => 1,
+        'username'  => 'bob'
+        'password'  => 'SOMEHASH'
+    ),
+    'Post' => array(
+        0 => array(
+            [id] => 1
+            [title] => First article
+            [content] => aaa
+            [created] => 2008-05-18 00:00:00
+        ),
+        1 => array(
+            [id] => 2
+            [title] => Second article
+            [content] => bbb
+            [created] => 2008-05-19 00:00:00
+        ),
+        2 => array(
+            [id] => 3
+            [title] => Third article
+            [content] => ccc
+            [created] => 2008-05-20 00:00:00
+        ),
+        ...
+    )
+)
+</code></pre>
+
+Recursive set to a value of @1@ means it will grab all first level relations. A good practice is to place the following in your AppModel:
+
+<pre><code><?php
+class AppModel extends Model {
+    var $recursive = -1;
+}
+?>
+</code></pre>
+
+Your queries will no longer grab extra related model data. This is good because as you expand your application, you will forget that one model that is related to everything, do a pagination, and bring down your application.
+
+h2. Containable Behavior
+
+Containable Behavior is really good at finding related model data. It has been in the core since at least 1.2 stable, and combined with the above trick, allows you to fish out exactly the data you need and no more. This also allows you to continue down a recursive chain and grab data even deeper down the model chain.
+
+<pre><code><?php
+class AppModel extends Model {
+    var $actsAs = array('Containable');
+}
+?>
+</code></pre>
+
+It is defined for all Models in this example, as it should be if setting @var $recursive = -1@. Attaching it manually is not preferred unless you are migrating a large application to use Containable Behavior:
+
+@$this->User->Behaviors->attach('Containable');@
+
+Given the example above, and that the model has @recursive@ set to @-1@, the following query:
+
+@$user = $this->User->find('first')@
+
+Will retrieve the following data:
+
+<pre><code>$user = array(
+    'User' => array(
+        'id'        => 1,
+        'username'  => 'bob'
+        'password'  => 'SOMEHASH'
+    ),
+)
+</code></pre>
+
+What if we also want all Posts containing the @article@ in the title?
+
+<pre><code>$user = $this->User->find('first', array(
+    'contain' => array(
+        'Post' => array(
+            'conditions' => array('Post.title LIKE' => '%article%'),
+        )
+    )
+))</code></pre>
+
+And the tags for each of those posts:
+
+<pre><code>$user = $this->User->find('first', array(
+    'contain' => array(
+        'Post' => array(
+            'conditions' => array('Post.title LIKE' => '%article%'),
+            'Tag',
+        )
+    )
+));</code></pre>
+
+Using Containable Behavior is good cake.
+
+h2. Linkable Behavior
+
+h2. Lazy Model
+
+This is a neat trick. By default, CakePHP instantiates the model chain. This means that if you use the @Post@ model, a @User@, @Tag@, and @Category@ model would also be instantiated because they are all related to the @Post model@. Depending upon the size of those classes, the hit could be great. Lazy Model is a great way to take care of this.
+
+There are many implementations, but the current consensus seems to be that "Frank de Graaf's":http://www.frankdegraaf.net/ "Lazy Model":http://github.com/Phally/lazy_model is the most useful.
+
+Setup is simple. Clone the plugin to your APP/plugins directory (or as a git submodule in that folder). Then do the following:
+
+<pre><code><?php
+App::import('Lib', 'LazyModel.LazyModel');
+class AppModel extends LazyModel {
+}
+?></code></pre>
+
+And off to the races your application goes. Please be aware that setting @$recursive@ to higher than @-1@ is not advised with this method. There are other caveats, please consult the "lazy model readme":http://github.com/Phally/lazy_model for more details
