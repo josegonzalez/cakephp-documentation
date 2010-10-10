@@ -12,7 +12,7 @@ Category belongsTo Post
 
 h2. Recursive Queries
 
-CakePHP's @Model@ class has a variable called @$recursive@. Here is the little docblock on it:
+CakePHP's @Model@ class has a property called @$recursive@. Here is the little docblock on it:
 
 <pre><code>
 /**
