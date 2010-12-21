@@ -20,7 +20,33 @@ class Post extends AppModel {
 }
 ?></code></pre>
 
-Behaviors will not work because they aren't really attached. Callbacks won't be fired. You can't access it in the @$associations@ array. Good luck.
+Behaviors will not work because they aren't really attached. Callbacks won't be fired. You can't access it in the @$associations@ array.
+
+If you need a CLEAN model, with zero-automagic, the following will do it instead:
+
+<pre><code><?php
+class Post extends AppModel {
+
+    function getMetadata() {
+        App::import('Model', 'Metadata');
+        return $this->Metadata = new Metadata(array(
+            'table' => 'metadatas',
+            'name' => 'Metadata',
+            'ds' => 'connection2'
+        ));
+    }
+
+    function getPluginMetadata() {
+        App::import('Model', 'Plugin.Metadata');
+        return $this->PluginMetadata = new Metadata(array(
+            'table' => 'plugin_metadatas',
+            'name' => 'Metadata',
+            'ds' => 'connection2'
+        ));
+    }
+
+}
+?></code></pre>
 
 h2. Raw sql queries
 
@@ -54,7 +80,7 @@ class Post extends AppModel {
 
 But that is bad CakePHP. It's okay though, you want to abuse it.
 
-The @ConnectionManager@ class can be used to get a datasource.
+The @ConnectionManager@ class can be used to get a datasource object.
 
 <pre><code><?php
 class PostsController extends AppController {
