@@ -180,7 +180,7 @@ class Post extends AppModel {
 
     function _findLatest($state, $query, $results = array()) {
         if ($state === 'before') {
-            if (empty('limit')) {
+            if (empty($query['limit'])) {
                 $query['limit'] = 3;
             }
             $query['conditions']['approved'] = 1;
