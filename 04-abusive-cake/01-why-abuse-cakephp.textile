@@ -1,0 +1,15 @@
+h1. Why Abuse CakePHP?
+
+# Because you need it to do something evil
+# Because you are on a deadline
+# Because CakePHP doesn't support what you want it to do
+# Because the default behavior is wrong
+# Because you have to work around other developers
+
+h2. Things to know
+
+Good CakePHP developers will hate you. I will hate you. The IRC channel will be so upset with you.
+
+But there are times when the abuse is warranted. We do what we must because we can.
+
+This is a list of bad things I never recommend doing because you will break CakePHP for other developers. They will be very upset at your application's weird behavior. Maintenance will be a disaster. But your app will work.

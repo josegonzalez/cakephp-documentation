@@ -1,0 +1,121 @@
+h1. Abusing Models
+
+CakePHP models. Don't abuse people.
+
+h2. Use unrelated models
+
+The following will return an instance of some random model unrelated to your current model:
+
+<pre><code><?php
+class Post extends AppModel {
+
+    function getMetadata() {
+        return $this->Metadata = ClassRegistry::init('Metadata');
+    }
+
+    function getPluginMetadata() {
+        return $this->PluginMetadata = ClassRegistry::init('Plugin.Metadata');
+    }
+
+}
+?></code></pre>
+
+Behaviors will not work because they aren't really attached. Callbacks won't be fired. You can't access it in the @$associations@ array. Good luck.
+
+h2. Raw sql queries
+
+@Model::find('list')@ is pretty cool, but it isn't as efficient as a raw mysql query. Custom finds use the @Set@ class to meld the data into shape, and the raw results are what you actually want in the case of a @Model::find('list')@. But using raw @mysql_connect@ et al. is going to land you in purgatory.
+
+You can try the following:
+
+<pre><code><?php
+class Post extends AppModel {
+
+    function getList() {
+        return ConnectionManager::getDataSource($this->Model->useDbConfig)->rawQuery('SELECT id, title FROM posts');
+    }
+
+}
+?></code></pre>
+
+This might also land you in purgatory, but it won't result a 2 second query.
+
+You can also use this method to do MySQL-config related things.
+
+<pre><code><?php
+class Post extends AppModel {
+
+    function setTimezone() {
+        return ConnectionManager::getDataSource($this->useDbConfig)->rawQuery("SET time_zone = '+00:00'");
+    }
+
+}
+?></code></pre>
+
+But that is bad CakePHP. It's okay though, you want to abuse it.
+
+The @ConnectionManager@ class can be used to get a datasource.
+
+<pre><code><?php
+class PostsController extends AppController {
+
+    function index() {
+        $db = ConnectionManager::getDataSource('test');
+        $db->rawQuery("SET time_zone = '+00:00'");
+        // Do stuff
+        $db_two = ConnectionManager::getDataSource('other');
+        $db_two->rawQuery("SET time_zone = '+06:00'");
+        // More stuff
+    }
+
+}
+?></code></pre>
+
+h2. Components in Models
+
+This is a sin. Mortal sin. The following should work though.
+
+<pre><code><?php
+class Post extends AppModel {
+
+    function sendEmail() {
+        $this->Mail->initialize();
+        $this->Mail->settings(array(
+            'from' => 'Sender <mail@example.com>',
+            'to' => 'Recipient <mail@example.com>',
+            'subject' => 'Subject',
+            'sendAs' => 'both',
+        ));
+        $this->Mail->send();
+    }
+
+    function initialize() {
+        $this->Mail =& new PostModelsController();
+        $this->Mail->constructClasses();
+        $this->Mail->Email->initialize($this->Controller);
+    }
+
+    function set($name, $data) {
+        $this->Mail->set($name, $data);
+    }
+
+    function settings($settings = array()) {
+        foreach ($settings as $key => $value) {
+            $this->Mail->Email->$key = $value;
+        }
+    }
+
+    function send($settings = array()) {
+        $this->settings($settings);
+        return $this->Mail->Email->send();
+    }
+
+}
+
+App::import('Core', 'Controller');
+class PostModelsController extends AppController {
+    var $name = 'PostModels';
+    var $components = array('Email');
+    var $uses = false;
+}
+?></code></pre>
