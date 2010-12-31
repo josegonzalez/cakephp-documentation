@@ -207,7 +207,55 @@ You'll notice the @before@ state is handled just fine (@if ($state == 'before')@
 }
 </code></pre>
 
-That is there to support pagination.
+That is there to support pagination. You'll need the following code in either your @Model@, @AppModel@, or @PluginAppModel@:
+
+<pre><code><?php
+class AppModel extends Model {
+
+/**
+ * Removes 'fields' key from count query on custom finds when it is an array,
+ * as it will completely break the Model::_findCount() call
+ *
+ * @param string $state Either "before" or "after"
+ * @param array $query
+ * @param array $data
+ * @return int The number of records found, or false
+ * @access protected
+ * @see Model::find()
+ */
+    function _findCount($state, $query, $results = array()) {
+        if ($state == 'before' && isset($query['operation'])) {
+            if (!empty($query['fields']) && is_array($query['fields'])) {
+                unset($query['fields']);
+            }
+        }
+        return parent::_findCount($state, $query, $results);
+    }
+
+/**
+ * Custom Model::paginateCount() method to support custom model find pagination
+ *
+ * @param array $conditions
+ * @param int $recursive
+ * @param array $extra
+ * @return array
+ */
+    function paginateCount($conditions = array(), $recursive = 0, $extra = array()) {
+        $parameters = compact('conditions');
+        if (isset($extra['type'])) {
+            $extra['operation'] = 'count';
+            return $this->find($extra['type'], array_merge($parameters, $extra));
+        } else {
+            return $this->find('count', array_merge($parameters, $extra));
+        }
+    }
+}
+?>
+</code></pre>
+
+We need to partially override @Model::_findCount()@ as performing a @Model::find('count')@ when the @fields@ key is set to an array will result an erroneous database query. The custom @Model::paginateCount()@ query is used in order to properly set the correct @Model::find()@. It is called automatically within @Controller::paginate()@. It is possible to leave this method in the @AppModel@ if you plan on using more than one custom pagination in many models.
+
+Below we can see the usage of our custom @Post::find('latest')@ method.s
 
 <pre><code><?php
 class PostsController extends AppController {
