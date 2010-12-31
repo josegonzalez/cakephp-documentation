@@ -1,0 +1,251 @@
+h1. Controllers
+
+h2. Reusing methods across all controllers
+
+In order to use a function in more than one controller, you have two options:
+
+# Place the function in a class from which those controllers inherit
+# Place the function in a Component
+
+For the first option, it is acceptable to place a method in the @AppController@ or in a @PluginAppController@. Some caveats:
+
+* Placing a method in an @AppController@ has possible visibility leaking issues:
+
+<pre><code><?php
+class AppController extends Controller {
+    var $redirectTo = array('action' => 'index');
+
+    // Accessible as http://localhost/your_cake_app/index
+    // Or http://localhost/your_cake_app/posts/index etc.
+    function index() {
+    }
+
+    // Inaccessible in routing
+    // Not dispatched by the Cake Dispatcher
+    protected function protectedFunction() {
+    }
+
+    // Inaccessible in child classes
+    // Not dispatched by the Cake Dispatcher
+    private function privateFunction() {
+    }
+
+    // Accessible in child classes
+    // Not dispatched by the Cake Dispatcher
+    function _cakeProtectedFunction() {
+    }
+
+    // Accessible in child classes
+    // Not dispatched by the Cake Dispatcher
+    function __cakePrivateFunction() {
+    }
+
+}
+?></code></pre>
+
+CakePHP has certain conventions to consider regarding function visibility. If remembering these conventions is hard, or you feel as though some methods belong together and separate, it is recommended to place these methods in a @Component@. This will increase the testability of those methods as well as allow one to re-use those methods across multiple projects.
+
+h2. Creating Components
+
+Components are easy to use classes in CakePHP. They directly extend the CakePHP @Object@ class. They also have a few callback methods. The convention for naming Components is @component_name.php@ => @ComponentNameComponent@. Below is a sample component:
+
+<pre><code><?php
+class MyCustomComponent extends Object {
+
+/**
+ * Called before the Controller::beforeFilter().
+ *
+ * @param object $controller Controller with components to initialize
+ * @return void
+ * @access public
+ */
+    function initialize(&$controller) {
+    }
+
+/**
+ * Called after the Controller::beforeFilter() and before the controller action
+ *
+ * @param object $controller Controller with components to startup
+ * @return void
+ * @access public
+ */
+    function startup(&$controller) {
+    }
+
+/**
+ * Called after the Controller::beforeRender(), after the view class is loaded, and before the
+ * Controller::render()
+ *
+ * @param object $controller Controller with components to beforeRender
+ * @return void
+ * @access public
+ */
+    function beforeRender(&$controller) {
+    }
+
+/**
+ * Called before Controller::redirect().
+ *
+ * @param object $controller Controller with components to beforeRedirect
+ * @return void
+ * @access public
+ */
+    function beforeRedirect(&$controller, $url, $status = null, $exit = true) {
+    }
+
+/**
+ * Called after Controller::render() and before the output is printed to the browser.
+ *
+ * @param object $controller Controller with components to shutdown
+ * @return void
+ * @access public
+ */
+    function shutdown(&$controller) {
+        $this->triggerCallback('shutdown', $controller);
+    }
+}
+?></code></pre>
+
+Any and all of these methods can be used, modified, or removed. It is not necessary to include any of the stub methods within your component, and a Component can be considered analogous to a behavior. Below is a sample component that simply loads configuration information from the database (assuming one has the proper schema for the @Setting@ model):
+
+<pre><code><?php
+class SettingsComponent extends Object {
+
+/**
+ * Loads the settings from the cache/database, writes them to cache,
+ * and then uses the Configure class to write them to the Session
+ *
+ * Called before the Controller::beforeFilter().
+ *
+ * @param object $controller Controller with components to initialize
+ * @return void
+ * @access public
+ * @author Jose Diaz-Gonzalez
+ */
+	function initialize(&$controller) {
+		$_settings = array();
+		if (($_settings = Cache::read('settings')) === false) {
+			$controller->loadModel('Setting');
+			$_settings = $controller->Setting->find('all');
+			Cache::write('settings', $_settings);
+		}
+		foreach ($_settings as $_setting) {
+			if ($_setting['Setting']['value'] !== null) {
+				Configure::write("Settings." . $_setting['Setting']['key'], $_setting['Setting']['value']);
+			}
+		}
+	}
+}
+?></code></pre>
+
+Components can therefore be used to perform a wide array of application-flow specific functions, and can be an effective way of creating DRY code.
+
+h3. Reusing Actions
+
+Often you may find yourself re-using the same action logic over and over. Maybe you are creating a calendar controller and the only thing that changes across each are certain pieces of information. It is possible to reuse a view across multiple actions using @Controller::render()@, but on occasion more DRY code may be achievable. In such cases, @Controller::setAction()@ is your friend.
+
+<pre><code><?php
+class PostsController extends Controller {
+
+    function view($id = null) {
+        // Redirect when we don't have an id
+        if (!$id) {
+            $this->Session->setFlash('Error finding post');
+            $this->redirect('index');
+        }
+
+        // Find the post if we don't already have one
+        if ($id != true) {
+            $this->set('post', $this->Post->findById($id));
+        }
+
+        // Redirect if no post was found
+        if (empty($this->viewVars['post'])) {
+            $this->Session->setFlash('Error finding post');
+            $this->redirect('index');
+        }
+
+        // Other code here
+    }
+
+    function firstByUser($user_id) {
+        $this->set('post', $this->Post->findByUserId($user_id));
+        $this->setAction('view', true);
+    }
+}
+?>
+</code></pre>
+
+As you can see, we can greatly reduce the amount of code necessary to process one or more actions. @Controller::setAction()@'s first parameter is the @action@ we wish to use, and all other parameters are passed as regular parameters to that method. This method of internal redirection can be used to persist the current request, call a central method after aggregating data, reuse views, etc. It should be used carefully, as when there are changes to an action called from @Controller::setAction()@, it is possible to break all actions which depend upon said action.
+
+h2. Loading Models unrelated to the Current Controller
+
+It should be noted that when working in a Controller, it is best to only use the Model related to the current Controller. Unfortunately, that can't always be the case, and so there are multiple ways of dealing with unrelated models. It should be noted that many of these methods are available in Components, Behaviors, and Models as well.
+
+h3. Model Chains
+
+Easily the best way to access other models is to chain from the loaded model. For example, a @PostsController@ might access the @Comment@ model by chaining from the @Post@ model as such:
+
+<pre><code><?php
+class PostsController extends AppController {
+
+    function comments($post_id) {
+        $this->loadModel('Comment');
+        $this->set('comments', $this->Post->Comment->findAllByPostId(1));
+    }
+}
+?>
+</code></pre>
+
+Model chaining can be done infinitely down the chain, so long as the models themselves are related. It is recommended to not chain farther than 3 models, as the number of loaded models will also increase as one chains, negating any performance gains.
+
+h4. Controller::loadModel()
+
+@Controller::loadModel()@ can be used as an alternative to Model Chaining. When one cannot access a model via Model Chaining, or the cost of doing so is prohibitive, @Controller::loadModel()@ can mitigate the costs by loading the model as if it would have been loaded by the controller automatically, making it accessible as a class Property, as well as adding caching to the object itself.
+
+<pre><code><?php
+class PostsController extends AppController {
+
+    function comments($post_id) {
+        $this->loadModel('Comment');
+        $this->set('comments', $this->Comment->findAllByPostId($post_id));
+    }
+}
+?>
+</code></pre>
+
+It can be quite an effective way of managing multiple models within a single controller, and can be used within Components as well, by calling it off the @$controller@ instance.
+
+h3. ClassRegistry::init()
+
+@ClassRegistry::init()@ can return an instance of a class very easily. For example, we could create a @Comment@ instance as such:
+
+<pre><code><?php
+class PostsController extends AppController {
+
+    function comments($post_id) {
+        $Comment = ClassRegistry::init('Comment');
+        $this->set('comments', $Comment->findAllByPostId($post_id));
+    }
+}
+?>
+</code></pre>
+
+This is of course useful when accessing completely unrelated models, and can be used in Components, Models, and Behaviors as well.
+
+h3. The $uses array
+
+The easiest way to load any and all models is to simply include them in the @$uses@ array. This can only be done in the the Controller's constructor or when defining the class property. This method will ensure the model is loaded in every action.
+
+<pre><code><?php
+class PostsController extends AppController {
+    var $uses = array('Post', 'Comment');
+}
+?>
+</code></pre>
+
+When using this method, ALL models which are to be used in all actions be defined within the array, otherwise they will not be automatically loaded. This property is also merged with the Parent classes' @$uses@ contents.
+
+Setting @$uses@ to null or an empty array will ensure no models are automatically loaded.
+
+The models will be loaded for every action within that controller or - in the case of the AppController - the controller's descendents. This means that there is some overhead to using this method, and therefore this should be avoided where possible.
