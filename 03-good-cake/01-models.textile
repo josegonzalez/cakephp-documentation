@@ -197,11 +197,12 @@ class Post extends AppModel {
                 return $this->_findCount($state, $query, $results);
             }
             return $query;
+        } elseif ($state == 'after') {
+            if (!empty($query['operation'])) {
+                return $this->_findCount($state, $query, $results);
+            }
+            return $results;
         }
-        if (!empty($query['operation'])) {
-            return $this->_findCount($state, $query, $results);
-        }
-        return $results;
     }
 }
 ?></code></pre>
