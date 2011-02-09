@@ -34,28 +34,28 @@ Will retrieve the following data:
 
 <pre><code>$user = array(
     'User' => array(
-        'id'        => 1,
-        'username'  => 'bob'
-        'password'  => 'SOMEHASH'
+        [id]        => 1,
+        [username]  => bob
+        [password]  => SOMEHASH
     ),
     'Post' => array(
         0 => array(
-            [id] => 1
-            [title] => First article
-            [content] => aaa
-            [created] => 2008-05-18 00:00:00
+            [id]        => 1
+            [title]     => First article
+            [content]   => aaa
+            [created]   => 2008-05-18 00:00:00
         ),
         1 => array(
-            [id] => 2
-            [title] => Second article
-            [content] => bbb
-            [created] => 2008-05-19 00:00:00
+            [id]        => 2
+            [title]     => Second article
+            [content]   => bbb
+            [created]   => 2008-05-19 00:00:00
         ),
         2 => array(
-            [id] => 3
-            [title] => Third article
-            [content] => ccc
-            [created] => 2008-05-20 00:00:00
+            [id]        => 3
+            [title]     => Third article
+            [content]   => ccc
+            [created]   => 2008-05-20 00:00:00
         ),
         ...
     )
@@ -74,9 +74,9 @@ class AppModel extends Model {
 And your results will be similar to:
 
 <pre><code>$user = array('User' => array(
-    'id'        => 1,
-    'username'  => 'bob'
-    'password'  => 'SOMEHASH'
+    [id]        => 1,
+    username    => bob
+    password    => SOMEHASH
 ));</code></pre>
 
 Your queries will no longer grab extra related model data. This is good because as you expand your application, you will forget that one model that is related to everything, do a pagination, and bring down your application.
