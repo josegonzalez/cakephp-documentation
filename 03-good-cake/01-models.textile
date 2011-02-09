@@ -198,7 +198,7 @@ class Post extends AppModel {
 }
 ?></code></pre>
 
-In a custom find method, we need to handle two states, the @before@ and @after state@. The @before@ state sets up a query so that it can be further processed via Model Behaviors and the CakePHP model class. The @after@ state exists so that we can further process the data for, eg. Sanitization.
+In a custom find method, we need to handle two states, the @before@ and @after@ state. The @before@ state sets up a query so that it can be further processed via Model Behaviors and the CakePHP model class. The @after@ state exists so that we can further process the data for, eg. Sanitization.
 
 You'll notice the @before@ state is handled just fine (@if ($state == 'before')@), and since we return before we leave the statement, we never need to worry about accidentally returning an @after@ state. There is also the following:
 
@@ -224,11 +224,13 @@ class AppModel extends Model {
  * @see Model::find()
  */
     function _findCount($state, $query, $results = array()) {
-        if ($state == 'before' && isset($query['operation'])) {
-            if (!empty($query['fields']) && is_array($query['fields'])) {
-                unset($query['fields']);
-            }
-        }
+		if ($state == 'before' && isset($query['operation'])) {
+			if (!empty($query['fields']) && is_array($query['fields'])) {
+				if (!preg_match('/^count/i', $query['fields'][0])) {
+					unset($query['fields']);
+				}
+			}
+		}
         return parent::_findCount($state, $query, $results);
     }
 
