@@ -75,8 +75,8 @@ And your results will be similar to:
 
 <pre><code>$user = array('User' => array(
     [id]        => 1,
-    username    => bob
-    password    => SOMEHASH
+    [username]  => bob
+    [password]  => SOMEHASH
 ));</code></pre>
 
 Your queries will no longer grab extra related model data. This is good because as you expand your application, you will forget that one model that is related to everything, do a pagination, and bring down your application.
