@@ -224,13 +224,13 @@ class AppModel extends Model {
  * @see Model::find()
  */
     function _findCount($state, $query, $results = array()) {
-		if ($state == 'before' && isset($query['operation'])) {
-			if (!empty($query['fields']) && is_array($query['fields'])) {
-				if (!preg_match('/^count/i', $query['fields'][0])) {
-					unset($query['fields']);
-				}
-			}
-		}
+        if ($state == 'before' && isset($query['operation'])) {
+            if (!empty($query['fields']) && is_array($query['fields'])) {
+                if (!preg_match('/^count/i', $query['fields'][0])) {
+                    unset($query['fields']);
+                }
+            }
+        }
         return parent::_findCount($state, $query, $results);
     }
 
@@ -244,6 +244,11 @@ class AppModel extends Model {
  */
     function paginateCount($conditions = array(), $recursive = 0, $extra = array()) {
         $parameters = compact('conditions');
+
+        if ($recursive != $this->recursive) {
+            $parameters['recursive'] = $recursive;
+        }
+
         if (isset($extra['type'])) {
             $extra['operation'] = 'count';
             return $this->find($extra['type'], array_merge($parameters, $extra));
