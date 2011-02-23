@@ -194,12 +194,12 @@ class Post extends AppModel {
             $query['conditions']['approved'] = 1;
 
             if (!empty($query['operation'])) {
-                return $this->_findCount($state, $query, $results);
+                return $this->_findPaginatecount($state, $query, $results);
             }
             return $query;
         } elseif ($state == 'after') {
             if (!empty($query['operation'])) {
-                return $this->_findCount($state, $query, $results);
+                return $this->_findPaginatecount($state, $query, $results);
             }
             return $results;
         }
@@ -212,7 +212,7 @@ In a custom find method, we need to handle two states, the @before@ and @after@ 
 You'll notice the @before@ state is handled just fine (@if ($state == 'before')@), and since we return before we leave the statement, we never need to worry about accidentally returning an @after@ state. There is also the following:
 
 <pre><code>if (!empty($query['operation'])) {
-    return $this->_findCount($state, $query, $results);
+    return $this->_findPaginatecount($state, $query, $results);
 }
 </code></pre>
 
@@ -220,6 +220,7 @@ That is there to support pagination. You'll need the following code in either yo
 
 <pre><code><?php
 class AppModel extends Model {
+    var $_findMethods = array('paginatecount' => true);
 
 /**
  * Removes 'fields' key from count query on custom finds when it is an array,
@@ -232,7 +233,7 @@ class AppModel extends Model {
  * @access protected
  * @see Model::find()
  */
-    function _findCount($state, $query, $results = array()) {
+    function _findPaginatecount($state, $query, $results = array()) {
         if ($state == 'before' && isset($query['operation'])) {
             if (!empty($query['fields']) && is_array($query['fields'])) {
                 if (!preg_match('/^count/i', $query['fields'][0])) {
@@ -269,7 +270,7 @@ class AppModel extends Model {
 ?>
 </code></pre>
 
-We need to partially override @Model::_findCount()@ as performing a @Model::find('count')@ when the @fields@ key is set to an array will result an erroneous database query. The custom @Model::paginateCount()@ query is used in order to properly set the correct @Model::find()@. It is called automatically within @Controller::paginate()@. It is possible to leave this method in the @AppModel@ if you plan on using more than one custom pagination in many models.
+We need to partially override @Model::_findCount()@ as performing a @Model::find('count')@ when the @fields@ key is set to an array will result an erroneous database query. We do this in a new custom find method @Model::find('paginatecount)@ - you'll need to also add this to the custom finds for your model, not a big deal - in order to not incur any overhead when performing a regular @Model::find('count')@ The custom @Model::paginateCount()@ query is used in order to properly set the correct @Model::find()@. It is called automatically within @Controller::paginate()@. It is possible to leave this method in the @AppModel@ if you plan on using more than one custom pagination in many models.
 
 Below we can see the usage of our custom @Post::find('latest')@ method.s
 
