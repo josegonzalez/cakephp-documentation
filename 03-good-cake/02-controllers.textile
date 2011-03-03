@@ -190,7 +190,6 @@ Easily the best way to access other models is to chain from the loaded model. Fo
 class PostsController extends AppController {
 
     function comments($post_id) {
-        $this->loadModel('Comment');
         $this->set('comments', $this->Post->Comment->findAllByPostId(1));
     }
 }
