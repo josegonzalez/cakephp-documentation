@@ -140,7 +140,7 @@ class SettingsComponent extends Object {
 
 Components can therefore be used to perform a wide array of application-flow specific functions, and can be an effective way of creating DRY code.
 
-h3. Reusing Actions
+h2. Reusing Actions
 
 Often you may find yourself re-using the same action logic over and over. Maybe you are creating a calendar controller and the only thing that changes across each are certain pieces of information. It is possible to reuse a view across multiple actions using @Controller::render()@, but on occasion more DRY code may be achievable. In such cases, @Controller::setAction()@ is your friend.
 
