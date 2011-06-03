@@ -176,7 +176,12 @@ Custom find types need two things, to be enabled in the model:
 
 <pre><code><?php
 class Post extends AppModel {
-    var $_findMethods = array('latest' => true);
+
+    function __construct($id = false, $table = null, $ds = null) {
+        parent::__construct($id, $table, $ds);
+        $this->_findMethods['latest'] = true;
+    }
+
 }
 ?></code></pre>
 
