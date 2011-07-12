@@ -245,6 +245,6 @@ class PostsController extends AppController {
 
 When using this method, ALL models which are to be used in all actions be defined within the array, otherwise they will not be automatically loaded. This property is also merged with the Parent classes' @$uses@ contents.
 
-Setting @$uses@ to null or an empty array will ensure no models are automatically loaded.
+Setting @$this->uses@ to null or false will ensure no models are automatically loaded. Setting @$this->uses@ to an empty array will not load a default model for the given controller, but will merge the @this->uses@ variable with all parent controllers.
 
 The models will be loaded for every action within that controller or - in the case of the AppController - the controller's descendents. This means that there is some overhead to using this method, and therefore this should be avoided where possible.
