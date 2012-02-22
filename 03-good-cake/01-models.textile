@@ -228,11 +228,14 @@ class AppModel extends Model {
  * @access protected
  * @see Model::find()
  */
-    protected function _findCount($state, $query, $results = array()) {
-		if (isset($query['type']) && isset($this->findMethods[$query['type']])) {
-			if (!empty($query['fields']) && is_array($query['fields'])) {
-				if (!preg_match('/^count/i', $query['fields'][0])) {
-					unset($query['fields']);
+	protected function _findCount($state, $query, $results = array()) {
+		if ($state === 'before') {
+			if (isset($query['type']) && isset($this->findMethods[$query['type']])) {
+				$query = $this->{'_find' . ucfirst($query['type'])}('before', $query);
+				if (!empty($query['fields']) && is_array($query['fields'])) {
+					if (!preg_match('/^count/i', $query['fields'][0])) {
+						unset($query['fields']);
+					}
 				}
 			}
 		}
